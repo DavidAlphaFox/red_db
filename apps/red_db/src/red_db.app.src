@@ -6,7 +6,7 @@
   {applications, [
                   kernel,
                   stdlib,
-		  		  ranch
+		  		        ranch
                  ]},
   {mod, { red_db_app, []}},
   {env, []}

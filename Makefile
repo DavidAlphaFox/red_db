@@ -1,7 +1,8 @@
 .PHONY: deps
 .PHONY: rel
+.PHONY: all
 
-all:deps compile
+all:rel
 
 deps:
 	./rebar get-deps

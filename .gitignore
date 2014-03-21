@@ -9,6 +9,6 @@ deps
 *.swp
 *~
 *.beam
-rel/red_proxy
+rel/red_db
 #*
 *.app
