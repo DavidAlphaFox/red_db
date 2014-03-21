@@ -77,9 +77,7 @@ socket({socket_ready,ListenerPid,Socket,Transport}, State) ->
     end,
   ok = Transport:setopts(Socket, [{active, once}, {packet, line}, binary]),
   _ = erlang:process_flag(trap_exit, true), %% We want to know even if it stops normally
-  {next_state, command_start, State#state{socket         = Socket,
-					  transport      = Transport,
-                                          peerport       = PeerPort}, hibernate};
+  {next_state, command_start, State#state{socket = Socket,transport = Transport,peerport = PeerPort}, hibernate};
 socket(timeout, State) ->
   {stop, timeout, State};
 
@@ -117,7 +115,11 @@ arg_size(Event, State) ->
 -spec command_name(term(), state()) -> {next_state, command_start, state(), hibernate} | {next_state, arg_size, state()} | {stop, {unexpected_event, term()}, state()}.
 command_name({data, Data}, State = #state{next_arg_size = Size,
 					  missing_args = 1}) ->
-  <<_Command:Size/binary, _Rest/binary>> = Data,
+  <<Command:Size/binary, _Rest/binary>> = Data,
+  Socket = State#state.socket,
+  Transport = State#state.transport,
+  Message = ["+","OK",Command,"\r\n"],
+  Transport:send(Socket,list_to_binary(Message)),
   {next_state, command_start, State, hibernate};
 command_name({data, Data}, State = #state{next_arg_size = Size, 
 					  missing_args = MissingArgs}) ->
@@ -165,6 +167,7 @@ handle_info({tcp, Socket, Bin}, StateName, #state{socket = Socket,
 						  transport = Transport} = StateData) ->
   % Flow control: enable forwarding of next TCP message
   ok = Transport:setopts(Socket, [{active, false}]),
+  io:format("~p",[Bin]),
   Result = ?MODULE:StateName({data, Bin}, StateData),
   ok = Transport:setopts(Socket, [{active, once}]),
   Result;
