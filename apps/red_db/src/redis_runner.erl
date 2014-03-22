@@ -112,7 +112,7 @@ run(#redis_command{cmd = <<"PING">>}, State)->
 run(#redis_command{cmd = Cmd,result_type = ResType},State)->
   case ResType of
     number -> 
-      tcp_number(1,State);
+      tcp_err(<<"error test">>,State);
     string ->
       tcp_string(Cmd,State)
   end.
