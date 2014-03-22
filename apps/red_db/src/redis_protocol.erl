@@ -15,8 +15,6 @@
 -export([socket/2, command_start/2, arg_size/2, command_name/2, argument/2]).
 -export([disconnect/1]).
 
--include("priv/red_db.hrl").
-
 -define(FSM_TIMEOUT, 60000).
 
 -record(state, 
@@ -28,7 +26,7 @@
           command_name :: undefined | binary(),
           args = [] :: [binary()],
           buffer = <<>> :: binary(),
-          command_runner :: undefined | pid()
+          runner :: undefined | pid()
         }).
 
 -type state() :: #state{}.
@@ -77,7 +75,8 @@ socket({socket_ready,ListenerPid,Socket,Transport}, State) ->
     end,
   ok = Transport:setopts(Socket, [{active, once}, {packet, line}, binary]),
   _ = erlang:process_flag(trap_exit, true), %% We want to know even if it stops normally
-  {next_state, command_start, State#state{socket = Socket,transport = Transport,peerport = PeerPort}, hibernate};
+  {ok, Runner} = redis_runner:start_link(Transport,Socket),
+  {next_state, command_start, State#state{socket = Socket,transport = Transport,peerport = PeerPort,runner = Runner}, hibernate};
 socket(timeout, State) ->
   {stop, timeout, State};
 
@@ -116,10 +115,8 @@ arg_size(Event, State) ->
 command_name({data, Data}, State = #state{next_arg_size = Size,
 					  missing_args = 1}) ->
   <<Command:Size/binary, _Rest/binary>> = Data,
-  Socket = State#state.socket,
-  Transport = State#state.transport,
-  Message = ["+","OK",Command,"\r\n"],
-  Transport:send(Socket,list_to_binary(Message)),
+  Runner = State#state.runner,
+  redis_runner:run(Runner,string_util:upper(Command),[]),
   {next_state, command_start, State, hibernate};
 command_name({data, Data}, State = #state{next_arg_size = Size, 
 					  missing_args = MissingArgs}) ->
@@ -137,9 +134,13 @@ argument({data, Data}, State = #state{buffer        = Buffer,
       <<Argument:Size/binary, _Rest/binary>> ->
 	  case State#state.missing_args of
 	      1 ->
-		  {next_state, command_start, State, hibernate};
+          Runner = State#state.runner,
+          Args = lists:reverse([Argument|State#state.args]),
+          Command = State#state.command_name,
+          redis_runner:run(Runner,string_util:upper(Command),Args),
+		      {next_state, command_start, State, hibernate};
 	      MissingArgs ->
-		  {next_state, arg_size, State#state{missing_args = MissingArgs - 1,
+		      {next_state, arg_size, State#state{missing_args = MissingArgs - 1,
                                              args = [Argument | State#state.args]}}
 	  end;
       NewBuffer -> %% Not the whole argument yet, just an \r\n in the middle of it
@@ -161,13 +162,13 @@ handle_sync_event(Event, _From, StateName, StateData) ->
 
 %% @hidden
 -spec handle_info(term(), atom(), state()) -> term().
-handle_info({'EXIT', CmdRunner, Reason}, _StateName, State = #state{command_runner = CmdRunner}) ->
+handle_info({'EXIT', CmdRunner, Reason}, _StateName, State = #state{runner = CmdRunner}) ->
   {stop, Reason, State};
 handle_info({tcp, Socket, Bin}, StateName, #state{socket = Socket,
 						  transport = Transport} = StateData) ->
   % Flow control: enable forwarding of next TCP message
   ok = Transport:setopts(Socket, [{active, false}]),
-  io:format("~p",[Bin]),
+  io:format("~p~n",[Bin]),
   Result = ?MODULE:StateName({data, Bin}, StateData),
   ok = Transport:setopts(Socket, [{active, once}]),
   Result;

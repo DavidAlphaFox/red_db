@@ -1,5 +1,5 @@
--record(redis_command, 
-				{ timestamp :: float(),
+-record(redis_command, {
+					timestamp :: float(),
           db = 0    :: non_neg_integer(),
           cmd       :: binary(),
           args = [] :: [term()],
