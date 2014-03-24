@@ -136,20 +136,7 @@ tcp_number(undefined, State) ->
   tcp_bulk(undefined, State);
 tcp_number(Number, State) ->
   tcp_send([":", integer_to_list(Number)], State).
-
-%% @private
--spec tcp_float(undefined | float(), state()) -> {noreply, state(), hibernate} | {stop, normal | {error, term()}, state()}.
-tcp_float(undefined, State) ->
-  tcp_bulk(undefined, State);
-tcp_float(?POS_INFINITY, State) ->
-    tcp_bulk("inf",State);
-tcp_float(?NEG_INFINITY, State) ->
-    tcp_bulk("-inf",State);
-tcp_float(Float, State) ->
-  case erlang:trunc(Float) * 1.0 of
-    Float -> tcp_bulk(integer_to_list(erlang:trunc(Float)), State);
-    _ -> tcp_bulk(io_lib:format("~.18f", [Float]), State)
-  end.
+  
 %% @private
 -spec tcp_err(binary(), state()) -> {noreply, state(), hibernate} | {stop, normal | {error, term()}, state()}.
 tcp_err(Message, State) ->
