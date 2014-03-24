@@ -5,7 +5,7 @@
 -export([db/1]).
 
 -record(state, {
-				db :: string()
+				db :: atom()
         }).
 -type state() :: #state{}.
 

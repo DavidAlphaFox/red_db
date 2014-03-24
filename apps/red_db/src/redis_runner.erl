@@ -14,7 +14,7 @@
 -record(state, {
 				socket :: port(),
 				transport :: undefined | atom(),
-        db = 0  :: atom(),
+        db = red_db:db(0)  :: atom(),
         multi_queue = undefined   :: undefined | [{binary(), [binary()]}]
         }).
 -type state() :: #state{}.
@@ -136,7 +136,7 @@ tcp_number(undefined, State) ->
   tcp_bulk(undefined, State);
 tcp_number(Number, State) ->
   tcp_send([":", integer_to_list(Number)], State).
-  
+
 %% @private
 -spec tcp_err(binary(), state()) -> {noreply, state(), hibernate} | {stop, normal | {error, term()}, state()}.
 tcp_err(Message, State) ->
