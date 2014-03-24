@@ -2,11 +2,14 @@
 -behaviour(gen_server).
 -export([start_link/1]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([db/1]).
 
 -record(state, {
+				db :: string()
         }).
 -type state() :: #state{}.
 
+-define(TABLE_TIMEOUT, 30000).
 
 %%% =================================================================================================
 %%% External functions
@@ -19,13 +22,12 @@ start_link(Index) ->
 %%% Server functions
 %%% =================================================================================================
 %%% @hidden
+
 -spec init(non_neg_integer()) -> {ok, state()} | {stop, any()}.
 init(Index) ->
-	{ok,#state{}}.
+	DB = db(Index),
+	{ok,#state{db = DB}}.
 
--spec db(non_neg_integer()) -> atom().
-db(Index) ->
-  list_to_atom("red_db_" ++ integer_to_list(Index)).
 handle_call(Any, _From, State) ->
   {reply, {ok,"R"}, State}.
 
@@ -45,4 +47,8 @@ terminate(_, _) ->
 -spec code_change(term(), state(), term()) -> {ok, state()}.
 code_change(_OldVsn, State, _Extra) -> 
 	{ok, State}.
+
+-spec db(non_neg_integer()) -> atom().
+db(Index) ->
+  list_to_atom("red_db_" ++ integer_to_list(Index)).
 
