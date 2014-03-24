@@ -24,5 +24,11 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+	RestartStrategy = {one_for_one, 5, 10},
+	Count = 1,
+  Children =
+    [{red_db:db(I), {red_db, start_link, [I]},
+      permanent, brutal_kill, worker, [red_db]}
+     || I <- lists:seq(0, Count - 1)],
+    {ok, { {one_for_one, 5, 10},Children} }.
 
