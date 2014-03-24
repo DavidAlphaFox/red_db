@@ -8,3 +8,8 @@
           timeout      :: undefined | infinity | pos_integer(),
           expire       :: undefined | never | pos_integer()
         }).
+
+-record(redis_item,{
+				key :: binary(),
+				value  :: binary()	
+				}).
