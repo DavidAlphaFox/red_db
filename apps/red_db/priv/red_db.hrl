@@ -9,7 +9,7 @@
           expire       :: undefined | never | pos_integer()
         }).
 
--record(redis_item,{
+-record(red_item, {
 				key :: binary(),
 				value  :: binary()	
 				}).
