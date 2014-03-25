@@ -95,8 +95,8 @@ init_tables(Count)->
 	Tables = lists:map(fun(I) ->
 			red_db:db(I)
 			end,Seq),
-
-	case mnesia:wait_for_tables(Tables, 30000) of
+	TimeOut = red_config:get(table_timeout),
+	case mnesia:wait_for_tables(Tables, TimeOut) of
   	ok ->
     	ok;
     {timeout, BadTables} ->
