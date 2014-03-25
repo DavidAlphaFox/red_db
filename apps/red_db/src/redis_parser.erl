@@ -63,5 +63,9 @@ parse_command(C = #redis_command{cmd = <<"GET">>, args = [_Key]}) ->
   C#redis_command{result_type = bulk, group=strings};
 parse_command(#redis_command{cmd = <<"GET">>}) -> 
   throw(bad_arg_num);
+parse_command(C = #redis_command{cmd = <<"SELECT">>, args = [Db]}) ->
+  C#redis_command{args = [binary_to_integer(Db)],result_type = ok, group = connection};
+parse_command(#redis_command{cmd = <<"SELECT">>}) ->
+  throw(bad_arg_num);
 parse_command(C = #redis_command{cmd = _Any}) -> 
   C#redis_command{ result_type = string, group=strings}.

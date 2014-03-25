@@ -90,6 +90,22 @@ run(#redis_command{cmd = <<"QUIT">>}, State) ->
 
 run(#redis_command{cmd = <<"PING">>}, State)->
   tcp_string(<<"PONG">>,State);
+
+run(C = #redis_command{cmd = <<"SELECT">>,args = [DB]},State)->
+  Count = red_config:get(max_db),
+  case DB of
+    undefined->
+      tcp_err(redis_parser:parse_error(C#redis_command.cmd,not_integer),State);
+    _->
+      if
+        (DB >= 0) and (DB < Count) ->
+          NewState = State#state{db = red_db:db(DB)},
+          tcp_ok(NewState);
+        true ->
+          tcp_err(redis_parser:parse_error(C#redis_command.cmd,not_integer),State)
+      end
+  end;
+
 run(C = #redis_command{result_type = ResType},State)->
   Res = red_db:run(State#state.db,C),
   case ResType of
