@@ -100,7 +100,9 @@ run(C = #redis_command{result_type = ResType},State)->
     number -> 
       tcp_number(Res, State);
     boolean -> 
-      tcp_boolean(Res, State)
+      tcp_boolean(Res, State);
+    bulk -> 
+      tcp_bulk(Res, State)
   end.
 
 

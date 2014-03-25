@@ -30,5 +30,5 @@ init([]) ->
     [{red_db:db(I), {red_db, start_link, [I]},
       permanent, brutal_kill, worker, [red_db]}
      || I <- lists:seq(0, Count - 1)],
-    {ok, { {one_for_one, 5, 10},Children} }.
+    {ok, { RestartStrategy,Children} }.
 
