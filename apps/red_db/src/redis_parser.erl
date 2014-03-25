@@ -59,7 +59,7 @@ parse_command(C = #redis_command{cmd = <<"INCRBY">>, args = [Key, Increment]}) -
   C#redis_command{args = [Key, binary_to_integer(Increment)], result_type = number, group=strings};
 parse_command(#redis_command{cmd = <<"INCRBY">>}) -> 
   throw(bad_arg_num);
-parse_command(C = #edis_command{cmd = <<"GET">>, args = [_Key]}) -> 
+parse_command(C = #redis_command{cmd = <<"GET">>, args = [_Key]}) -> 
   C#redis_command{result_type = bulk, group=strings};
 parse_command(#redis_command{cmd = <<"GET">>}) -> 
   throw(bad_arg_num);
