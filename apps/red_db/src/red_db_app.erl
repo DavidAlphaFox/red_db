@@ -10,14 +10,20 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    {ok, _} = ranch:start_listener(redis_proxy,1,
-                ranch_tcp, [{port, 6379}], redis_protocol, []),
-    init_db(),
-    init_tables(0),
-    red_db_sup:start_link().
+	
+	Port = red_config:get(port),
+	MaxWorker = red_config:get(max_worker),
+	AcceptorWorker = red_config:get(acceptor_worker),
+	MaxDB = red_config:get(max_db),
+  {ok, _} = ranch:start_listener(red_db,AcceptorWorker,
+                ranch_tcp, [{port, Port}], redis_protocol, []),
+  ranch:set_max_connections(red_db,MaxWorker),
+  init_db(),
+  init_tables(MaxDB),
+  red_db_sup:start_link().
 
 stop(_State) ->
-    ok.
+  ok.
 
 
 %%% @doc get directory of mnesia
@@ -85,7 +91,7 @@ create_tables(Tables)->
 	true = lists:all(Fun,Tables).
 
 init_tables(Count)->
-	Seq = lists:seq(0, Count),
+	Seq = lists:seq(0, Count - 1),
 	Tables = lists:map(fun(I) ->
 			red_db:db(I)
 			end,Seq),
