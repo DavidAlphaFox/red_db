@@ -81,7 +81,7 @@ init_db()->
 
 create_tables(Tables)->
 	Fun = fun(Table)->
-			case mnesia:create_table(Table,[{attributes,record_info(fields,red_item)},{disc_copies, [node()]}]) of
+			case mnesia:create_table(Table,[{attributes,record_info(fields,red_item)},{disc_copies,[node()]}]) of
 				{atomic, ok}->
 					true;
 				{aborted, Reason}->

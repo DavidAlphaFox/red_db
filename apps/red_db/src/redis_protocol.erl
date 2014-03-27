@@ -1,4 +1,4 @@
-%%%-------------------------------------------------------------------                                                          
+%%-------------------------------------------------------------------                                                          
 %%% @author David.Gao <david.alpha.fox@gmail.com>                                                                                                                                     
 %%% @copyright (C) 2014                                                                                  
 %%% @doc redis protocol processor                                                                                                   
@@ -168,7 +168,6 @@ handle_info({tcp, Socket, Bin}, StateName, #state{socket = Socket,
 						  transport = Transport} = StateData) ->
   % Flow control: enable forwarding of next TCP message
   ok = Transport:setopts(Socket, [{active, false}]),
-  io:format("~p~n",[Bin]),
   Result = ?MODULE:StateName({data, Bin}, StateData),
   ok = Transport:setopts(Socket, [{active, once}]),
   Result;

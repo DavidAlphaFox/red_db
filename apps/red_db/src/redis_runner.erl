@@ -165,7 +165,6 @@ tcp_string(Message, State) ->
 tcp_send(Message, State) ->
   Transport = State#state.transport,
   Socket = State#state.socket,
-  io:format("rep:~p~n",[Message]),
   try Transport:send(Socket, [Message, "\r\n"]) of
     ok ->
       {noreply, State, hibernate};

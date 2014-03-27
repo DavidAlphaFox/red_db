@@ -149,14 +149,16 @@ set_item(Key,Value,State)->
 
 get_item(Key,State)->
 	DB = State#state.db,
-	Fun = fun()->
-		R = mnesia:read(DB,Key),
+  try
+	  R = mnesia:dirty_read(DB,Key),
     lists:map(fun({_,Key,Value})->
-        #red_item{key = Key,value = Value}
-        end,R)
-	end,
-	execute_mnesia_transaction(Fun).
-
+      #red_item{key = Key,value = Value}
+      end,R)
+  catch
+    exit:{aborted,Reason} ->
+      throw({error, Reason})
+  end.
+  
 update(Key,State,Fun,Default)->
 	try
 		{Res,Item} = 
