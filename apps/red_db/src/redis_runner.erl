@@ -106,8 +106,12 @@ run(C = #redis_command{cmd = <<"SELECT">>,args = [DB]},State)->
       end
   end;
 
-run(C = #redis_command{result_type = ResType},State)->
-  Res = red_db:run(State#state.db,C),
+run(C = #redis_command{result_type = ResType,args = [Key|_]},State)->
+  Hash = hasher:murmur2(Key),
+  MaxDB = red_config:get(max_db),
+  Index = Hash rem MaxDB,
+  DB = red_db:db(Index),
+  Res = red_db:run(DB,C),
   case ResType of
     ok -> 
       tcp_ok(State);

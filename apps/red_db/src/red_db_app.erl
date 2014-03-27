@@ -10,7 +10,7 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-	
+	application:start(hasher),
 	Port = red_config:get(port),
 	MaxWorker = red_config:get(max_worker),
 	AcceptorWorker = red_config:get(acceptor_worker),

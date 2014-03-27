@@ -151,11 +151,11 @@ get_item(Key,State)->
 	DB = State#state.db,
   try
 	  R = mnesia:dirty_read(DB,Key),
-    lists:map(fun({_,Key,Value})->
-      #red_item{key = Key,value = Value}
+    lists:map(fun({_,K,V})->
+      #red_item{key = K,value = V}
       end,R)
   catch
-    exit:{aborted,Reason} ->
+    exit:Reason ->
       throw({error, Reason})
   end.
   
